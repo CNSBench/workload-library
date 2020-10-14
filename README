@@ -1,0 +1,2 @@
+To install, simply apply all of the yaml files:
+    `find . -name '*.yaml' -exec kubectl apply -f {} \;`
