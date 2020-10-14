@@ -1,2 +1,5 @@
-To install, simply apply all of the yaml files:
-    `find . -name '*.yaml' -exec kubectl apply -f {} \;`
+Install
+-------
+
+To install a workload or parser apply the yaml file with `kubectl apply -f <file>`.
+To install all, do `find . -name '*.yaml' -exec kubectl apply -f {} \;`
