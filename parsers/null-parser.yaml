@@ -6,6 +6,6 @@ metadata:
   labels:
     type: parser
   annotations:
-    container: busybox
+    container: dwdraju/alpine-curl-jq
 data:
   null.sh: "#!/bin/sh\n\ncat $1\nexit 0\n"
