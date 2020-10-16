@@ -5,7 +5,8 @@ in a ConfigMap and provide the name of that ConfigMap.
 
 Output Files
 ------------
-json+ output is written to /tmp/output.json
+json+ output is written to /output/output.json, which is the the default output
+file.  The default parser is the null-parser.
 
 Variables
 ---------

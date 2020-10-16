@@ -85,13 +85,15 @@ data:
       annotations:
         sync: "1"
         role: workload
+        outputFile: /output/output.json
+        parser: null-parser
     spec:
       backoffLimit: 0
       template:
         spec:
           restartPolicy: Never
           initContainers:
-          - image: fio
+          - image: alexmerenstein/workloads/fio
             imagePullPolicy: IfNotPresent
             name: init-fio
             command: ["fio", "/var/config/config"]
