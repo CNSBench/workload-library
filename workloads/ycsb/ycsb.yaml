@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ycsb
+  namespace: library
+  labels:
+    type: workload
+  annotations:
+    cnsbench.default.dblayer: basic
+    cnsbench.default.workload: workloada
+    cnsbench.default.recordcount: 50000
+    cnsbench.default.operationcount: 50000
+    cnsbench.default.otherparams: ""
+data:
+  workload.yaml: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: ycsb-mongo-{{ACTION_NAME}}-{{INSTANCE_NUM}}
+      namespace: default
+      annotations:
+        sync: "1"
+        role: workload
+        outputFole: /output/output
+        parser: null-parser
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: {{ACTION_NAME}}-client
+        spec:
+          restartPolicy: Never
+          initContainers:
+          - name: init-ycsb
+            image: alexmerenstein/workloads/ycsb
+            workingDir: /ycsb-0.17.0
+            imagePullPolicy: IfNotPresent
+            command: ["/bin/bash", "-c", "count=$(( {{recordcount}}/$NUM_INSTANCES )); start=$(( $INSTANCE_NUM*$count )); ./bin/ycsb load {{dblayer}} -s -P workloads/{{workload}} {{otherparams}} -p recordcount={{recordcount}} -p insertstart=$start -p insertcount=$count"]
+          containers:
+          - name: ycsb
+            image: loadbalancer:5000/cnsb/ycsb
+            workingDir: /ycsb-0.17.0
+            imagePullPolicy: IfNotPresent
+            command: ["/bin/bash", "-c", "./bin/ycsb run {{dblayer}} -s -P workloads/{{workload}} {{otherparams}} -p recordcount={{recordcount}} -p operationcount={{operationcount}} | tee /output/output"]
