@@ -1,3 +1,3 @@
 FROM alpine:latest
 
-RUN apk add --no-cache python3 fio
+RUN apk add --no-cache fio
