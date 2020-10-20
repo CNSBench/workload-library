@@ -33,13 +33,13 @@ data:
           restartPolicy: Never
           initContainers:
           - name: init-ycsb
-            image: alexmerenstein/workloads/ycsb
+            image: alexmerenstein/workloads:ycsb
             workingDir: /ycsb-0.17.0
             imagePullPolicy: IfNotPresent
-            command: ["/bin/bash", "-c", "count=$(( {{recordcount}}/$NUM_INSTANCES )); start=$(( $INSTANCE_NUM*$count )); ./bin/ycsb load {{dblayer}} -s -P workloads/{{workload}} {{otherparams}} -p recordcount={{recordcount}} -p insertstart=$start -p insertcount=$count"]
+            command: ["/bin/sh", "-c", "count=$(( {{recordcount}}/$NUM_INSTANCES )); start=$(( $INSTANCE_NUM*$count )); ./bin/ycsb.sh load {{dblayer}} -s -P workloads/{{workload}} {{otherparams}} -p recordcount={{recordcount}} -p insertstart=$start -p insertcount=$count"]
           containers:
           - name: ycsb
-            image: loadbalancer:5000/cnsb/ycsb
+            image: alexmerenstein/workloads:ycsb
             workingDir: /ycsb-0.17.0
             imagePullPolicy: IfNotPresent
-            command: ["/bin/bash", "-c", "./bin/ycsb run {{dblayer}} -s -P workloads/{{workload}} {{otherparams}} -p recordcount={{recordcount}} -p operationcount={{operationcount}} | tee /output/output"]
+            command: ["/bin/sh", "-c", "./bin/ycsb.sh run {{dblayer}} -s -P workloads/{{workload}} {{otherparams}} -p recordcount={{recordcount}} -p operationcount={{operationcount}} | tee /output/output"]
