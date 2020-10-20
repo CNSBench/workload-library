@@ -106,7 +106,7 @@ data:
           - image: kubes1:5000/cnsb/fio
             imagePullPolicy: IfNotPresent
             name: fio
-            command: ["bash", "-c", "fio /var/config/config --output-format=json+ | tee /tmp/output.json"]
+            command: ["sh", "-c", "fio /var/config/config --output-format=json+ | tee /tmp/output.json"]
             volumeMounts:
               - mountPath: /var/data/
                 name: data
