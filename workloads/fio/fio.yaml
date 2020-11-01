@@ -103,7 +103,7 @@ data:
               - mountPath: /var/config/
                 name: initconfig
           containers:
-          - image: kubes1:5000/cnsb/fio
+          - image: alexmerenstein/workloads/fio
             imagePullPolicy: IfNotPresent
             name: fio
             command: ["sh", "-c", "fio /var/config/config --output-format=json+ | tee /tmp/output.json"]
