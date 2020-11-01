@@ -1,0 +1,12 @@
+Megahit
+
+Runs megahit.
+
+Output Files
+------------
+TODO
+
+Variables
+---------
+* storageClass: storage class PV should be allocated from.
+* fiosize: size of file used by fio for I/O.  Default is 6g
