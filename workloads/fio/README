@@ -10,6 +10,7 @@ file.  The default parser is the null-parser.
 
 Variables
 ---------
+* storageClass: storage class PV should be allocated from.
 * fiosize: size of file used by fio for I/O.  Default is 6g
 * pvcsize: size of PVC used by fio.  Should be large enough to fit `fiosize`
 * rw: I/O operation mix, either randread, randwrite, read, write, or rw.
