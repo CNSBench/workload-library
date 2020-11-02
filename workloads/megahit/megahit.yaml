@@ -31,7 +31,7 @@ data:
       annotations:
         sync: "1"
         role: workload
-        outputFile: /output/output
+        outputFile: /output/out
         parser: null-parser
     spec:
       backoffLimit: 0
@@ -42,7 +42,7 @@ data:
           - image: alexmerenstein/workloads/megahit
             imagePullPolicy: IfNotPresent
             name: megahit
-            command: ["sh", "-c", "mkdir -p /output; cp cut* /data/; megahit -1 /data/cut1* -2 /data/cut2* -m .5 -t 1 -o /data/out > /output/"]
+            command: ["sh", "-c", "mkdir -p /output; cp cut* /data/; megahit -1 /data/cut1* -2 /data/cut2* -m .5 -t 1 -o /data/out > /output/out"]
             volumeMounts:
               - mountPath: /data/
                 name: data
