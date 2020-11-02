@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-test
+  namespace: library
+  labels:
+    type: workload
+  annotations:
+    cnsbench.default.pvcsize: 7gi
+    cnsbench.default.port: "5432"
+    cnsbench.default.hostvar: "POSTGRES_SERVICE_SERVICE_HOST"
+    cnsbench.default.runtime: "600"
+data:
+  pvc.yaml: |
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: {{ACTION_NAME}}-{{INSTANCE_NUM}}-vol
+      namespace: default
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: {{storageClass}}
+  service.yaml: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: {{ACTION_NAME}}-service
+      namespace: default
+    spec:
+      type: NodePort
+      ports:
+      - port: {{port}}
+        protocol: TCP
+        name: {{ACTION_NAME}}-port
+      selector:
+        app: {{ACTION_NAME}}-server
+  server-pod.yaml: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: {{ACTION_NAME}}-server
+      namespace: default
+      labels:
+        app: {{ACTION_NAME}}-server
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: {{ACTION_NAME}}-client
+            topologyKey: "kubernetes.io/hostname"
+      restartPolicy: Never
+      shareProcessNamespace: true
+      containers:
+      - name: postgres
+        image: postgres
+        command: ["/bin/bash", "-c", "PGPORT={{port}} PGDATA=/var/lib/postgresql/data/db POSTGRES_PASSWORD=password ./docker-entrypoint.sh -d postgre"]
+        volumeMounts:
+          - name: data
+            mountPath: /var/lib/postgresql/data/
+        ports:
+        - containerPort: {{port}}
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ACTION_NAME}}-{{INSTANCE_NUM}}-vol
+  workload.yaml: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: {{ACTION_NAME}}-{{INSTANCE_NUM}}-server
+      namespace: default
+      annotations:
+        sync: "1"
+        role: workload
+        outputFile: /output/out
+        parser: null-parser
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: {{ACTION_NAME}}-client
+        spec:
+          restartPolicy: Never
+          initContainers:
+          - name: wait-for-postgres
+            image: postgres
+            command: ["/bin/bash", "-c", "until timeout 1 bash -c \"</dev/tcp/${{{hostvar}}}/{{port}}\"; do echo waiting; sleep 1; done"]
+          - name: init-pgbench
+            image: postgres
+            command: ["bash", "-c", "sleep 60; PGPASSWORD=password POSTGRES_PASSWORD=password pgbench -i postgres -U postgres -s 20 -U postgres -h ${{{hostvar}}} -p {{port}}"]
+          containers:
+          - name: psql
+            image: postgres
+            command: ["/bin/bash", "-c", "mkdir -p /output/; PGPASSWORD=password POSTGRES_PASSWORD=password pgbench -c10 -T {{runtime}} postgres -U postgres -s 20 -h ${{{hostvar}}} -p {{port}} | tee /output/out"]
