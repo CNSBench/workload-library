@@ -5,6 +5,8 @@ metadata:
   namespace: library
   labels:
     type: workload
+  annotations:
+    cnsbench.default.pvcsize: 7Gi
 data:
   pvc.yaml: |
     apiVersion: v1
