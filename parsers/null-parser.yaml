@@ -6,6 +6,6 @@ metadata:
   labels:
     type: parser
   annotations:
-    container: dwdraju/alpine-curl-jq
+    container: cnsbench/utility:latest
 data:
   null.sh: "#!/bin/sh\n\ncat $1\nexit 0\n"
