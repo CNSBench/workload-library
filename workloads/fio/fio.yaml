@@ -93,7 +93,7 @@ data:
         spec:
           restartPolicy: Never
           initContainers:
-          - image: alexmerenstein/workloads/fio
+          - image: cnsbench/fio
             imagePullPolicy: IfNotPresent
             name: init-fio
             command: ["fio", "/var/config/config"]
@@ -103,10 +103,10 @@ data:
               - mountPath: /var/config/
                 name: initconfig
           containers:
-          - image: alexmerenstein/workloads/fio
+          - image: cnsbench/fio
             imagePullPolicy: IfNotPresent
             name: fio
-            command: ["sh", "-c", "fio /var/config/config --output-format=json+ | tee /tmp/output.json"]
+            command: ["sh", "-c", "fio /var/config/config --output-format=json+ | tee /output/output.json"]
             volumeMounts:
               - mountPath: /var/data/
                 name: data

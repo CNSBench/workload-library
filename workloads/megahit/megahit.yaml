@@ -39,7 +39,7 @@ data:
         spec:
           restartPolicy: Never
           containers:
-          - image: alexmerenstein/workloads/megahit
+          - image: cnsbench/megahit
             imagePullPolicy: IfNotPresent
             name: megahit
             command: ["sh", "-c", "mkdir -p /output; cp cut* /data/; megahit -1 /data/cut1* -2 /data/cut2* -m .5 -t 1 -o /data/out > /output/out"]

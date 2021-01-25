@@ -41,7 +41,7 @@ data:
         spec:
           restartPolicy: Never
           containers:
-          - image: alexmerenstein/cnsb/filebench
+          - image: cnsbench/filebench
             imagePullPolicy: IfNotPresent
             name: filebench
             command: ["sh", "-c", "filebench -f /usr/local/share/filebench/workloads/{{workload}}.f | tee /output/output"]
