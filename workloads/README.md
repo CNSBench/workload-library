@@ -18,7 +18,7 @@ configuration.
 ## Developing a workload
 
 A workload is specified using a ConfigMap with a key/value for each resource
-manifest.
+manifest.  See [template.yaml](template.yaml) to get started.
 
 ### Parameterization
 
