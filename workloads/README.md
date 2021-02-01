@@ -42,6 +42,11 @@ workload author.  These include:
 * NUM\_INSTANCES: How many instances of this workload are being created for a
   particular action.  This can be used for example to divide a fixed amount of
   work evenly across the number of instances that are being created.
+* volname: If a workload requires a volume, it should parameterize the name of
+  that volume with this parameter.  This allows CNSBench to know if a
+  non-default volume name has been provided, so it can skip creating objects
+  with the role "volume" (see below for information on the "role" object
+  annotation).
 
 
 #### Multiple workload copies
@@ -63,8 +68,17 @@ workload.
 Annotations in a workload resource's metadata is used to provide CNSBench with
 information such as whether any output needs to be collected from the resource.
 Annotations are all optional, and available annotations are:
-* role: If set to "workload", then CNSBench waits for this resource to complete
-  before finishing the benchmark.
+* role: Indicates the role this object has in the I/O workload:
+  * "workload": Should be applied to the resource responsible for generating the
+    I/O workload.  For example, the resource that runs the client in a
+    client-server workload, or the resource that runs the synthetic benchmarking
+    application.  CNSBench will waits for all resources with the "workload" role
+    to complete before finishing the benchmark.
+  * "volume": If the user has supplied a non-default value for the "volname"
+    parameter, CNSBench will skip creating resources with the "volume" role.
+    This allows users to use volumes that were pre-provisioned outside of
+    CNSBench, or that were created using the Volume specification in the
+    Benchmark.
 * outputFile: Default file that should be collected after the resource completes
   running.
 * parser: Default parser to run.
