@@ -12,7 +12,34 @@ metadata:
     cnsbench.default.pctread: "50"
     cnsbench.default.fiosize: 6g
     cnsbench.default.pvcsize: 7Gi
+    cnsbench.default.volname: vol-{{ACTION_NAME}}-{{INSTANCE_NUM}}
 data:
+  basic-parser.yaml: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: basic-parser
+      namespace: cnsbench-library
+      labels:
+        type: parser
+      annotations:
+        container: cnsbench/utility:latest
+    data:
+      parser.py: |
+        #!/usr/bin/env python
+        import json
+        import sys
+        with open(sys.argv[1]) as f:
+            r = json.load(f)
+        res = []
+        for job in r['jobs']:
+            job_res = {}
+            job_res['read_bw'] = job['read']['bw']
+            job_res['write_bw'] = job['write']['bw']
+            job_res['read_lat'] = job['read']['lat_ns']['mean']
+            job_res['write_lat'] = job['write']['lat_ns']['mean']
+            res.append(job_res)
+        print(json.dumps(res))
   initconfig.yaml: |
     apiVersion: v1
     data:
@@ -68,6 +95,8 @@ data:
     metadata:
       name: vol-{{ACTION_NAME}}-{{INSTANCE_NUM}}
       namespace: default
+      annotations:
+        role: volume
     spec:
       accessModes:
       - ReadWriteOnce
@@ -86,7 +115,7 @@ data:
         sync: "1"
         role: workload
         outputFile: /output/output.json
-        parser: null-parser
+        parser: basic-parser
     spec:
       backoffLimit: 0
       template:
@@ -115,7 +144,7 @@ data:
           volumes:
           - name: data
             persistentVolumeClaim:
-              claimName: vol-{{ACTION_NAME}}-{{INSTANCE_NUM}}
+              claimName: {{volname}}
           - name: config
             configMap:
               name: {{config}}
