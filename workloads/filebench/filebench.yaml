@@ -16,6 +16,8 @@ data:
     metadata:
       name: vol-{{ACTION_NAME}}-{{INSTANCE_NUM}}
       namespace: default
+      annotations:
+        role: volume
     spec:
       accessModes:
       - ReadWriteOnce
