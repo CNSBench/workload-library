@@ -37,7 +37,7 @@ in a ConfigMap and provide the name of that ConfigMap.
 ### Using your own fio configuration
 
 Create ConfigMaps from your fio configuration files, e.g.
-```
+```Shell
 kubectl create cm test-config --from-file test-config
 kubectl create cm test-config-init --from-file test-config-init
 ```
@@ -48,7 +48,7 @@ ConfigMap is created from.
 Then, in your benchmark configuration set the `config` and `initConfig`
 variables, e.g.
 
-```
+```YAML
 workloads:
 - name: fio
   workload: fio

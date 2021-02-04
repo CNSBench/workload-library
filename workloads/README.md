@@ -86,7 +86,7 @@ Annotations are all optional, and available annotations are:
 ### Workload ConfigMap metadata
 
 The ConfigMap should have the following metadata information:
-```
+```YAML
 name: Name of workload.
 namespace: cnsbench-library
 labels:

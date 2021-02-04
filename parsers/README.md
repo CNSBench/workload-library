@@ -20,7 +20,7 @@ invoked with the first argument being the filename of the file that should be
 parsed.  The parsed output should be printed to stdout.
 
 The ConfigMap should have the following metadata information:
-```
+```YAML
 name: Name of parser.  When a workload or user references which parser should be
       used for a particular output, this is the name that is used.
 namespace: cnsbench-library
