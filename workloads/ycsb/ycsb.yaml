@@ -23,6 +23,7 @@ data:
         role: workload
         outputFole: /output/output
         parser: null-parser
+        duplicate: "true"
     spec:
       backoffLimit: 0
       template:

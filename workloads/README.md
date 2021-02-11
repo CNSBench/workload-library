@@ -82,6 +82,11 @@ Annotations are all optional, and available annotations are:
 * outputFile: Default file that should be collected after the resource completes
   running.
 * parser: Default parser to run.
+* duplicate: Indicates if a new instance of this workload resource should be
+  instantiated for each instance of the workload.  If this is the case, set the
+  annotation to `duplicate: "true"`.  This should generally be set on volumes
+  and client resources, but might not be set for the server or config file
+  parts of the workload.
 
 ### Workload ConfigMap metadata
 

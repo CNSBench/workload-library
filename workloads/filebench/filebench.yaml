@@ -18,6 +18,7 @@ data:
       namespace: default
       annotations:
         role: volume
+        duplicate: "true"
     spec:
       accessModes:
       - ReadWriteOnce
@@ -37,6 +38,7 @@ data:
         role: workload
         outputFile: /output/output
         parser: null-parser
+        duplicate: "true"
     spec:
       backoffLimit: 0
       template:

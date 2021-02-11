@@ -14,6 +14,9 @@ data:
     metadata:
       name: vol-{{ACTION_NAME}}-{{INSTANCE_NUM}}
       namespace: default
+      annotations:
+        role: volume
+        duplicate: "true"
     spec:
       accessModes:
       - ReadWriteOnce
@@ -33,6 +36,7 @@ data:
         role: workload
         outputFile: /output/out
         parser: null-parser
+        duplicate: "true"
     spec:
       backoffLimit: 0
       template:
