@@ -16,12 +16,12 @@ data:
     apiVersion: batch/v1
     kind: Job
     metadata:
-      name: ycsb-mongo-{{ACTION_NAME}}-{{INSTANCE_NUM}}
+      name: ycsb-{{ACTION_NAME}}-{{INSTANCE_NUM}}
       namespace: default
       annotations:
         sync: "1"
         role: workload
-        outputFole: /output/output
+        outputFile: /output/output
         parser: null-parser
         duplicate: "true"
     spec:
