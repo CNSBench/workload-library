@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ycsb-timeseries-parser
+  namespace: cnsbench-library
+  labels:
+    type: parser
+  annotations:
+    container: cnsbench/utility:latest
+data:
+  parser.sh: |
+    #!/usr/bin/env python
+    import json
+    import sys
+    r = {'read': [], 'update': []}
+    with open(sys.argv[1]) as f:
+      for l in f:
+        try:
+          key, time, val = l.split(',')
+          key = key[1:-1].lower()
+          time = int(time)
+          val = float(val)
+          r[key].append((time, val))
+        except:
+          pass
+    print(json.dumps(r))
