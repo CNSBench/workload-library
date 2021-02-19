@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ycsb-cassandra
+  namespace: cnsbench-library
+  labels:
+    type: workload
+  annotations:
+    cnsbench.default.workload: workloada
+    cnsbench.default.recordcount: "50000"
+    cnsbench.default.operationcount: "50000"
+    cnsbench.default.address: "rook-cassandra-client.rook-cassandra.svc.cluster.local"
+    cnsbench.default.timegranularity: "1000"
+    cnsbench.default.maxexecutiontime: "3600"
+    cnsbench.default.otherparams: ""
+data:
+  scale-scripts.yaml: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: scale-cassandra-scripts
+      namespace: default
+      annotations:
+        role: scale-scripts
+    data:
+      scaledown.sh: |
+        #!/bin/bash
+    
+        cur=`kubectl get clusters.cassandra.rook.io/$1 -nrook-cassandra -ojson | jq .spec.datacenter.racks[0].members`
+        new=$(( cur - 1 ))
+        kubectl patch -nrook-cassandra clusters.cassandra.rook.io/$1 --type=json -p '[{"op": "replace", "path": "/spec/datacenter/racks/0/members", "value": '${new}'}]'
+      scaleup.sh: |
+        #!/bin/bash
+    
+        cur=`kubectl get clusters.cassandra.rook.io/$1 -nrook-cassandra -ojson | jq .spec.datacenter.racks[0].members`
+        new=$(( cur + 1 ))
+        kubectl patch -nrook-cassandra clusters.cassandra.rook.io/$1 --type=json -p '[{"op": "replace", "path": "/spec/datacenter/racks/0/members", "value": '${new}'}]'
+  workload.yaml: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: ycsb-cassandra-{{ACTION_NAME}}-{{INSTANCE_NUM}}
+      namespace: default
+      annotations:
+        sync: "1"
+        role: workload
+        outputFile: /output/out
+        parser: null-parser
+        duplicate: "true"
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: {{ACTION_NAME}}-client
+        spec:
+          restartPolicy: Never
+          initContainers:
+          - name: init-ycsb
+            image: cnsbench/ycsb
+            workingDir: /ycsb-0.17.0
+            imagePullPolicy: IfNotPresent
+            command: ["/bin/sh", "-c", "if [[ $INSTANCE_NUM -gt 0 ]]; then echo exiting; exit 0; fi; ./bin/ycsb.sh load cassandra-cql -s -P workloads/{{workload}} -p hosts={{address}} -p measurementtype=timeseries -p timeseries.granularity={{timegranularity}} -p maxexecutiontime={{maxexecutiontime}} -p recordcount={{recordcount}} {{otherparams}}"]
+          containers:
+          - name: ycsb
+            image: cnsbench/ycsb
+            workingDir: /ycsb-0.17.0
+            imagePullPolicy: IfNotPresent
+            command: ["/bin/sh", "-c", "./bin/ycsb.sh run cassandra-cql -s -P workloads/{{workload}} -p hosts={{address}} -p measurementtype=timeseries -p timeseries.granularity={{timegranularity}} -p maxexecutiontime={{maxexecutiontime}} -p recordcount={{recordcount}} -p operationcount={{operationcount}} {{otherparams}} > /output/out"]

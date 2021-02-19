@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scale-cassandra
+  namespace: cnsbench-library
+  annotations:
+    role: scale-scripts
+data:
+  scaledown.sh: |
+    #!/bin/bash
+
+    cur=`kubectl get clusters.cassandra.rook.io/$1 -nrook-cassandra -ojson | jq .spec.datacenter.racks[0].members`
+    new=$(( cur - 1 ))
+    kubectl patch -nrook-cassandra clusters.cassandra.rook.io/$1 --type=json -p '[{"op": "replace", "path": "/spec/datacenter/racks/0/members", "value": '${new}'}]'
+  scaleup.sh: |
+    #!/bin/bash
+
+    cur=`kubectl get clusters.cassandra.rook.io/$1 -nrook-cassandra -ojson | jq .spec.datacenter.racks[0].members`
+    new=$(( cur + 1 ))
+    kubectl patch -nrook-cassandra clusters.cassandra.rook.io/$1 --type=json -p '[{"op": "replace", "path": "/spec/datacenter/racks/0/members", "value": '${new}'}]'
