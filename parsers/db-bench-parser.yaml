@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-bench-parser
+  namespace: cnsbench-library
+  labels:
+    type: parser
+  annotations:
+    container: cnsbench/utility:latest
+data:
+  parser.py: |
+    #!/usr/bin/env python
+    import sys
+    import json
+
+    metrics_exclude = {
+        "DB path"
+    }
+
+    # Read input file
+    filename = sys.argv[1]
+    lines = None
+    with open(filename, "r") as f:
+        lines = f.readlines()
+    metrics_dict = {}
+
+    # Parse general metrics
+    for line in filter(lambda s: ':' in s, lines[:-2]):
+        metric = line.partition(':')
+        # Skip metric
+        if metric[0].strip() in metrics_exclude:
+            continue
+        metrics_dict[metric[0].strip()] = metric[2].strip()
+
+    # Parses PERF CONTEXT metrics
+    perf_context_split = lines[-1].split(',')
+    metrics_perf_context = {}
+    for s in perf_context_split:
+        if s.count("=") > 1:
+            pass
+        elif s.count("=") == 1:
+            metric = s.split("=")
+            metrics_perf_context[metric[0].strip()] = metric[1].strip()
+        else:
+            #print(s)
+            pass
+
+    metrics_dict["perf context"] = metrics_perf_context
+
+    print(json.dumps(metrics_dict, indent=4))
+

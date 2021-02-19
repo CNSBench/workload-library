@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-bench
+  namespace: cnsbench-library
+  labels:
+    type: workload
+  annotations:
+    cnsbench.default.pvcsize: 10Gi
+data:
+  config.yaml: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: db-bench-config
+      namespace: default
+  pvc.yaml: |
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: vol-{{ACTION_NAME}}-{{INSTANCE_NUM}}
+      namespace: default
+      #      annotations:
+      #        role: volume
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: {{pvcsize}}
+      storageClassName: {{storageClass}}
+      volumeMode: Filesystem
+  workload.yaml: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: db-bench-{{ACTION_NAME}}-{{INSTANCE_NUM}}
+      namespace: default
+      annotations:
+        role: workload
+        outputFile: /output/output.log
+        parser: null-parser
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - image: cnsbench/db_bench
+            imagePullPolicy: IfNotPresent
+            name: db-bench
+            command: ["/bin/bash", "-c"]
+            args:
+              ["num=500",
+               "/benchmark/db_bench \
+                -benchmarks=mixgraph \
+                -use_direct_io_for_flush_and_compaction=true \
+                -use_direct_reads=true \
+                -cache_size=268435456 \
+                -key_dist_a=0.002312 \
+                -key_dist_b=0.3467 \
+                -keyrange_num=1 \
+                -value_k=0.2615 \
+                -value_sigma=25.45 \
+                -iter_k=2.517 \
+                -iter_sigma=14.236 \
+                -mix_get_ratio=0.83 \
+                -mix_put_ratio=0.14 \
+                -mix_seek_ratio=0.03 \
+                -sine_mix_rate_interval_milliseconds=5000 \
+                -sine_a=1000 \
+                -sine_b=0.000073 \
+                -sine_d=4500 \
+                -perf_level=2 \
+                -reads=420000 \
+                -key_size=48 \
+                -num=$num \
+                -db=/var/db \
+                -use_existing_db=true | \
+                tee /output/output.log"]
+            volumeMounts:
+              - mountPath: /var/db/
+                name: data
+          initContainers:
+          - image: cnsbench/db_bench
+            imagePullPolicy: IfNotPresent
+            name: init-db-bench
+            command: ["/bin/bash", "-c"]
+            args:
+              ["num=500",
+               "/benchmark/db_bench \
+                -benchmarks=fillrandom \
+                -perf_level=3 \
+                -use_direct_io_for_flush_and_compaction=true \
+                -use_direct_reads=true \
+                -cache_size=268435456 \
+                -key_size=48 \
+                -value_size=43 \
+                -num=$num \
+                -db=/var/db"]
+            volumeMounts:
+              - mountPath: /var/db/
+                name: data
+          volumes:
+          - name: data
+            persistentVolumeClaim:
+              claimName: vol-{{ACTION_NAME}}-{{INSTANCE_NUM}}
