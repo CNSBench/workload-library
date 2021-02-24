@@ -7,6 +7,7 @@ metadata:
     type: workload
   annotations:
     cnsbench.default.pvcsize: 10Gi
+    cnsbench.default.volname: vol-{{ACTION_NAME}}-{{INSTANCE_NUM}}
 data:
   parser.yaml: |
     apiVersion: v1
@@ -115,4 +116,4 @@ data:
           volumes:
           - name: data
             persistentVolumeClaim:
-              claimName: vol-{{ACTION_NAME}}-{{INSTANCE_NUM}}
+              claimName: {{volname}}
