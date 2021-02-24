@@ -8,6 +8,57 @@ metadata:
   annotations:
     cnsbench.default.pvcsize: 10Gi
 data:
+  parser.yaml: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: db-bench-parser
+      namespace: cnsbench-library
+      labels:
+        type: parser
+      annotations:
+        container: cnsbench/utility:latest
+    data:
+      parser.py: |
+        #!/usr/bin/env python
+        import sys
+        import json
+    
+        metrics_exclude = {
+            "DB path"
+        }
+    
+        # Read input file
+        filename = sys.argv[1]
+        lines = None
+        with open(filename, "r") as f:
+            lines = f.readlines()
+        metrics_dict = {}
+    
+        # Parse general metrics
+        for line in filter(lambda s: ':' in s, lines[:-2]):
+            metric = line.partition(':')
+            # Skip metric
+            if metric[0].strip() in metrics_exclude:
+                continue
+            metrics_dict[metric[0].strip()] = metric[2].strip()
+    
+        # Parses PERF CONTEXT metrics
+        perf_context_split = lines[-1].split(',')
+        metrics_perf_context = {}
+        for s in perf_context_split:
+            if s.count("=") > 1:
+                pass
+            elif s.count("=") == 1:
+                metric = s.split("=")
+                metrics_perf_context[metric[0].strip()] = metric[1].strip()
+            else:
+                #print(s)
+                pass
+    
+        metrics_dict["perf context"] = metrics_perf_context
+    
+        print(json.dumps(metrics_dict, indent=4))
   config.yaml: |
     apiVersion: v1
     kind: ConfigMap
@@ -39,65 +90,25 @@ data:
       annotations:
         role: workload
         outputFile: /output/output.log
-        parser: null-parser
+        parser: db-bench-parser
     spec:
       backoffLimit: 0
       template:
         spec:
           restartPolicy: Never
           containers:
-          - image: cnsbench/db_bench
+          - image: cnsbench/db_bench:centos
             imagePullPolicy: IfNotPresent
             name: db-bench
-            command: ["/bin/bash", "-c"]
-            args:
-              ["num=500",
-               "/benchmark/db_bench \
-                -benchmarks=mixgraph \
-                -use_direct_io_for_flush_and_compaction=true \
-                -use_direct_reads=true \
-                -cache_size=268435456 \
-                -key_dist_a=0.002312 \
-                -key_dist_b=0.3467 \
-                -keyrange_num=1 \
-                -value_k=0.2615 \
-                -value_sigma=25.45 \
-                -iter_k=2.517 \
-                -iter_sigma=14.236 \
-                -mix_get_ratio=0.83 \
-                -mix_put_ratio=0.14 \
-                -mix_seek_ratio=0.03 \
-                -sine_mix_rate_interval_milliseconds=5000 \
-                -sine_a=1000 \
-                -sine_b=0.000073 \
-                -sine_d=4500 \
-                -perf_level=2 \
-                -reads=420000 \
-                -key_size=48 \
-                -num=$num \
-                -db=/var/db \
-                -use_existing_db=true | \
-                tee /output/output.log"]
+            command: ["/bin/bash", "-c", "num=500; /benchmark/db_bench -benchmarks=mixgraph -use_direct_io_for_flush_and_compaction=true -use_direct_reads=true -cache_size=268435456 -key_dist_a=0.002312 -key_dist_b=0.3467 -keyrange_num=1 -value_k=0.2615 -value_sigma=25.45 -iter_k=2.517 -iter_sigma=14.236 -mix_get_ratio=0.83 -mix_put_ratio=0.14 -mix_seek_ratio=0.03 -sine_mix_rate_interval_milliseconds=5000 -sine_a=1000 -sine_b=0.000073 -sine_d=4500 -perf_level=2 -reads=420000 -key_size=48 -num=$num -db=/var/db -use_existing_db=true | tee /output/output.log"]
             volumeMounts:
               - mountPath: /var/db/
                 name: data
           initContainers:
-          - image: cnsbench/db_bench
+          - image: cnsbench/db_bench:centos
             imagePullPolicy: IfNotPresent
             name: init-db-bench
-            command: ["/bin/bash", "-c"]
-            args:
-              ["num=500",
-               "/benchmark/db_bench \
-                -benchmarks=fillrandom \
-                -perf_level=3 \
-                -use_direct_io_for_flush_and_compaction=true \
-                -use_direct_reads=true \
-                -cache_size=268435456 \
-                -key_size=48 \
-                -value_size=43 \
-                -num=$num \
-                -db=/var/db"]
+            command: ["/bin/bash", "-c", "num=500; /benchmark/db_bench -benchmarks=fillrandom -perf_level=3 -use_direct_io_for_flush_and_compaction=true -use_direct_reads=true -cache_size=268435456 -key_size=48 -value_size=43 -num=$num -db=/var/db"]
             volumeMounts:
               - mountPath: /var/db/
                 name: data
